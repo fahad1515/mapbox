@@ -1,7 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 
 class MapMarker {
-  const MapMarker({this.image, this.title, this.address, this.location});
+  const MapMarker({
+    @required this.image,
+    @required this.title, 
+    @required this.address,
+    @required this.location
+    });
   final String image;
   final String title;
   final String address;

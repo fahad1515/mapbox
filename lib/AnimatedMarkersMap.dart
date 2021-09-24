@@ -1,4 +1,6 @@
-import 'dart:html';
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter/material.dart';
@@ -6,12 +8,12 @@ import 'package:flutter_mapbox/model/MapMarker.dart';
 import 'package:latlong2/latlong.dart';
 
 const MAPBOX_ACCESS_TOKEN =
-    'pk.eyJ1IjoiZmFoYWQxNTE1IiwiYSI6ImNrZWV6OWZzZDE3ZTMyc3A3cGw4anRvY20ifQ.WqiePBffH7k0M-00000';
+    'pk.eyJ1IjoiZmFoYWQxNTE1IiwiYSI6ImNrZWV6OWZzZDE3ZTMyc3A3cGw4anRvY20ifQ.WqiePBffH7k0M-OcvGqY0w';
 
 const MAPBOX_STYLE = 'mapbox/dark-v10';
 const MARKER_COLOR = Color(0xFF3DC5A7);
 const MARKER_SIZE_EXPANDED = 55.0;
-const MARKER_SEZE_SHRINK =38.0;
+const MARKER_SEZE_SHRINK = 38.0;
 final _myLocation = LatLng(-12.0362176, -77.0296812);
 
 class AnimatedMarkersMap extends StatefulWidget {
@@ -21,10 +23,10 @@ class AnimatedMarkersMap extends StatefulWidget {
   _AnimatedMarkersMapState createState() => _AnimatedMarkersMapState();
 }
 
-class _AnimatedMarkersMapState extends State<AnimatedMarkersMap> with SingleTickerProviderStateMixin {
-
+class _AnimatedMarkersMapState extends State<AnimatedMarkersMap>
+    with SingleTickerProviderStateMixin {
   final _pageController = PageController();
-  late final AnimationController  _animationController;
+  AnimationController _animationController;
   int _selectedIndex = 0;
 
   List<Marker> _buildMarkers() {
@@ -39,34 +41,38 @@ class _AnimatedMarkersMapState extends State<AnimatedMarkersMap> with SingleTick
           builder: (_) {
             return GestureDetector(
               onTap: () {
-               _selectedIndex = i;
+                _selectedIndex = i;
                 setState(() {
-                        _pageController.animateToPage(i,
-                    duration: const Duration(microseconds: 500),
-                    curve: Curves.elasticInOut); //bounceInOut);
-                print('selected : ${mapItem.title}');           
-                                });
+                  _pageController.animateToPage(i,
+                      duration: const Duration(microseconds: 500),
+                      curve: Curves.elasticInOut); //bounceInOut);
+                  print('selected : ${mapItem.title}');
+                });
               },
-              child: _MyLocationMarker(
-                 selected:_selectedIndex == i,
+              child: _LocationMarker(
+                selected: _selectedIndex == i,
               ),
-               
             );
-          }));
+          },
+        ),
+      );
     }
     return _markerList;
   }
 
   @override
-    void initState() {
-      // TODO: implement initState
-      super.initState();
-    }
-   @override
-     void dispose() {
-       _animationController.dispose();
-       super.dispose();
-     }
+  void initState() {
+    _animationController = new AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600));
+    _animationController.repeat(reverse: true);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +112,7 @@ class _AnimatedMarkersMapState extends State<AnimatedMarkersMap> with SingleTick
                 Marker(
                     point: _myLocation,
                     builder: (_) {
-                      return _MyLocationMarker();
+                      return _MyLocationMarker(_animationController);
                     }),
               ])
             ],
@@ -135,9 +141,9 @@ class _AnimatedMarkersMapState extends State<AnimatedMarkersMap> with SingleTick
 }
 
 class _LocationMarker extends StatelessWidget {
-  const _LocationMarker({Key? key, this.selected = false}) : super(key: key);
+  const _LocationMarker({Key key, this.selected = false}) : super(key: key);
 
-final bool selected;
+  final bool selected;
   @override
   Widget build(BuildContext context) {
     final size = selected ? MARKER_SIZE_EXPANDED : MARKER_SEZE_SHRINK;
@@ -146,33 +152,53 @@ final bool selected;
         height: size,
         width: size,
         duration: const Duration(milliseconds: 400),
-        child:Image.asset('assets/animated.png'), 
-      ) ,
+        child: Image.asset('assets/animated.png'),
+      ),
     );
   }
 }
 
-class _MyLocationMarker extends StatelessWidget {
-  const _MyLocationMarker({Key key, bool selected}) : super(key: key);
+class _MyLocationMarker extends AnimatedWidget {
+  const _MyLocationMarker(Animation<double> animation, {Key key})
+      : super(
+          key: key,
+          listenable: animation,
+        );
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      width: 50,
-      decoration: BoxDecoration(
-        color: MARKER_COLOR,
-        shape: BoxShape.circle,
-      ),
-    );
+    final value = (listenable as Animation<double>).value;
+    final newValue = lerpDouble(0.5, 1.0, value);
+    final size = 50.0;
+    return Center(
+        child: Stack(
+      children: [
+        Container(
+          height: size * newValue,
+          width: size * newValue,
+          decoration: BoxDecoration(
+              shape: BoxShape.circle, color: MARKER_COLOR.withOpacity(0.5)),
+        ),
+        Center(
+          child: Container(
+            height: 20,
+            width: 20,
+            decoration: BoxDecoration(
+              color: MARKER_COLOR,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ],
+    ));
   }
 }
 
 class _MapItemDetails extends StatelessWidget {
   const _MapItemDetails({
     Key key,
-    required this.mapMarker,
+    @required this.mapMarker,
   }) : super(key: key);
-
+  final MapMarker mapMarker;
   @override
   Widget build(BuildContext context) {
     final _style = TextStyle(color: Colors.grey[800], fontSize: 20);

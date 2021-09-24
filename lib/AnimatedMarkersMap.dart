@@ -8,7 +8,7 @@ import 'package:flutter_mapbox/model/MapMarker.dart';
 import 'package:latlong2/latlong.dart';
 
 const MAPBOX_ACCESS_TOKEN =
-    'pk.eyJ1IjoiZmFoYWQxNTE1IiwiYSI6ImNrZWV6OWZzZDE3ZTMyc3A3cGw4anRvY20ifQ.WqiePBffH7k0M-OcvGqY0w';
+    '';
 
 const MAPBOX_STYLE = 'mapbox/dark-v10';
 const MARKER_COLOR = Color(0xFF3DC5A7);
